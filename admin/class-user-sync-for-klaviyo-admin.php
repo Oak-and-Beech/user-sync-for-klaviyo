@@ -216,11 +216,11 @@ class User_Sync_For_Klaviyo_Admin
 			<p style="position:relative">
 				<input type='password' name='user_sync_for_klaviyo_settings[klaviyo_private_key]' value='<?= (isset($options['klaviyo_private_key'])) ? esc_attr($options['klaviyo_private_key']) : ""; ?>'>
 				<span class="dashicons dashicons-visibility key-reveal"></span>
-				<i class="swk-help-description"><a href="https://help.klaviyo.com/hc/en-us/articles/7423954176283" target="_blank">Create a private key <span class="dashicons dashicons-external"></span></a></i>
 			</p>
 
-		<?php }else{ ?>
-			<input type='text' name='user_sync_for_klaviyo_settings[klaviyo_private_key]'>
+			<?php }else{ ?>
+				<input type='text' name='user_sync_for_klaviyo_settings[klaviyo_private_key]'>
+				<i class="swk-help-description"><a href="https://help.klaviyo.com/hc/en-us/articles/7423954176283" target="_blank">Create a private key <span class="dashicons dashicons-external"></span></a></i>
 		<?php }
 	?>
 	
