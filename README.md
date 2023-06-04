@@ -74,4 +74,4 @@ Once you enable the setting to add the Klaviyo Javascript to your website, you w
 No, this plugin will not delete any data from your Klaviyo account at any stage.
 
 ### Changelog 
-*1.0* 15/04/2023 - Initial release of the plugin
+*1.0.0* 15/04/2023 - Initial release of the plugin
