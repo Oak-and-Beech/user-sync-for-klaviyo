@@ -10,7 +10,8 @@
 				fields: 'ID',
 				paged: 1,
 				number: swk_settings.number,
-				total_users: swk_settings.total_users
+				total_users: swk_settings.total_users,
+				nonce: swk.nonce,
 			};
 			$("#swk-progress-bar-container").slideDown();
 			$(this).hide();

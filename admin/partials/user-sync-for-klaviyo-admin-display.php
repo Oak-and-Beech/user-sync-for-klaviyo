@@ -55,7 +55,7 @@
                 <?php $settings = get_option(USER_SYNC_FOR_KLAVIYO_SETTINGS);
                 if($settings['klaviyo_private_key'] != "" && $settings['activate_user_sync'] == 'on'):?>
                 <?php $total_users = count_users()['total_users']; ?>
-                <div id="swk-start-sync" class="button">Start Sync (<?= $total_users; ?> Users)</div>
+                <div id="swk-start-sync" class="button">Start Sync (<?php echo (int) $total_users; ?> Users)</div>
                 <div id="swk-stop-sync" class="button red warning" style="display:none;">Stop Sync</div>
                 <!-- Add HTML for progress bar -->
                 <div id="swk-progress-bar-container" style="display:none;">
@@ -64,7 +64,7 @@
                 </div>
                 <script>
                     var swk_settings = {
-                        'total_users': <?= $total_users; ?>,
+                        'total_users': <?php echo (int) $total_users; ?>,
                         'number': 15
                     }
                 </script>

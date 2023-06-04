@@ -106,6 +106,7 @@ class User_Sync_For_Klaviyo_Admin
 			'swk',
 			array(
 				'ajaxurl' => admin_url('admin-ajax.php'),
+				'nonce' => wp_create_nonce('ajax-nonce')
 			)
 		);
 	}
@@ -121,12 +122,12 @@ class User_Sync_For_Klaviyo_Admin
 		require_once plugin_dir_path(dirname(__FILE__)) . 'admin/partials/user-sync-for-klaviyo-admin-display.php';
 	}
 
-	public function plugin_action_links( $links ) 
+	public function plugin_action_links($links)
 	{
-		$links = array_merge( array(
-			'<a href="' . esc_url( admin_url( 'admin.php?page=user_sync_for_klaviyo_settings.php' ) ) . '">Settings</a>'
-		), $links );
-	
+		$links = array_merge(array(
+			'<a href="' . esc_url(admin_url('admin.php?page=user_sync_for_klaviyo_settings.php')) . '">Settings</a>'
+		), $links);
+
 		return $links;
 	}
 
@@ -157,7 +158,7 @@ class User_Sync_For_Klaviyo_Admin
 		 * Register the setting field and assign it to the relevant group and section
 		 */
 
-		 add_settings_field(
+		add_settings_field(
 			'activate_user_sync',
 			'Enable User Sync',
 			array($this, 'activate_user_sync_render'),
@@ -193,46 +194,46 @@ class User_Sync_For_Klaviyo_Admin
 	function activate_user_sync_render()
 	{
 		$options = get_option(USER_SYNC_FOR_KLAVIYO_SETTINGS);
-	?>
-		<input type="radio" name="user_sync_for_klaviyo_settings[activate_user_sync]" id="user_sync_for_klaviyo_on" value="on" <?= (isset($options['activate_user_sync']) && esc_attr($options['activate_user_sync']) == 'on') ? "checked=checked": ""; ?>><label for="user_sync_for_klaviyo_on">On</label> 
-		<input type="radio" name="user_sync_for_klaviyo_settings[activate_user_sync]" id="user_sync_for_klaviyo_off" value="off" <?= (!isset($options['activate_user_sync']) || esc_attr($options['activate_user_sync']) == 'off') ? "checked=checked": ""; ?>><label for="user_sync_for_klaviyo_off">Off</label>
+?>
+		<input type="radio" name="user_sync_for_klaviyo_settings[activate_user_sync]" id="user_sync_for_klaviyo_on" value="on" <?php echo (isset($options['activate_user_sync']) && esc_attr($options['activate_user_sync']) == 'on') ? "checked=checked" : ""; ?>><label for="user_sync_for_klaviyo_on">On</label>
+		<input type="radio" name="user_sync_for_klaviyo_settings[activate_user_sync]" id="user_sync_for_klaviyo_off" value="off" <?php echo (!isset($options['activate_user_sync']) || esc_attr($options['activate_user_sync']) == 'off') ? "checked=checked" : ""; ?>><label for="user_sync_for_klaviyo_off">Off</label>
 		<p><i class="swk-help-description">Enable automatic syncing of users from Wordpress to Klaviyo</i></p>
-<?php 
+	<?php
 	}
 
 	function klaviyo_public_key_render()
 	{
 		$options = get_option(USER_SYNC_FOR_KLAVIYO_SETTINGS);
-?>
-		<input type='text' name='user_sync_for_klaviyo_settings[klaviyo_public_key]' value='<?= (isset($options['klaviyo_public_key'])) ? esc_attr($options['klaviyo_public_key']) : ""; ?>'>
+	?>
+		<input type='text' name='user_sync_for_klaviyo_settings[klaviyo_public_key]' value='<?php echo (isset($options['klaviyo_public_key'])) ? esc_attr($options['klaviyo_public_key']) : ""; ?>'>
 		<i class="swk-help-description"><a href="https://help.klaviyo.com/hc/en-us/articles/115005062267-How-to-manage-your-account-s-API-keys" target="_blank">Find your public key <span class="dashicons dashicons-external"></span></a></i>
-	<?php
+		<?php
 	}
 
 	function klaviyo_private_key_render()
 	{
 		$options = get_option(USER_SYNC_FOR_KLAVIYO_SETTINGS);
-		if(isset($options['klaviyo_private_key'])){?>
+		if (isset($options['klaviyo_private_key'])) { ?>
 			<p style="position:relative">
-				<input type='password' name='user_sync_for_klaviyo_settings[klaviyo_private_key]' value='<?= (isset($options['klaviyo_private_key'])) ? esc_attr($options['klaviyo_private_key']) : ""; ?>'>
+				<input type='password' name='user_sync_for_klaviyo_settings[klaviyo_private_key]' value='<?php echo (isset($options['klaviyo_private_key'])) ? esc_attr($options['klaviyo_private_key']) : ""; ?>'>
 				<span class="dashicons dashicons-visibility key-reveal"></span>
 			</p>
 
-			<?php }else{ ?>
-				<input type='text' name='user_sync_for_klaviyo_settings[klaviyo_private_key]'>
-				<i class="swk-help-description"><a href="https://help.klaviyo.com/hc/en-us/articles/7423954176283" target="_blank">Create a private key <span class="dashicons dashicons-external"></span></a></i>
+		<?php } else { ?>
+			<input type='text' name='user_sync_for_klaviyo_settings[klaviyo_private_key]'>
+			<i class="swk-help-description"><a href="https://help.klaviyo.com/hc/en-us/articles/7423954176283" target="_blank">Create a private key <span class="dashicons dashicons-external"></span></a></i>
 		<?php }
-	?>
-	
-<?php
+		?>
+
+	<?php
 	}
 
 	function inject_klaviyo_script_render()
 	{
 		$options = get_option(USER_SYNC_FOR_KLAVIYO_SETTINGS);
-		?>	
-		<input type="radio" name="user_sync_for_klaviyo_settings[inject_klaviyo_script]" id="inject_klaviyo_script_on" value="on" <?= (isset($options['inject_klaviyo_script']) && esc_attr($options['inject_klaviyo_script']) == 'on') ? "checked=checked": ""; ?>><label for="inject_klaviyo_script_on">On</label> 
-		<input type="radio" name="user_sync_for_klaviyo_settings[inject_klaviyo_script]" id="inject_klaviyo_script_off" value="off" <?= (!isset($options['inject_klaviyo_script']) || esc_attr($options['inject_klaviyo_script']) == 'off') ? "checked=checked": ""; ?>><label for="inject_klaviyo_script_off">Off</label>
+	?>
+		<input type="radio" name="user_sync_for_klaviyo_settings[inject_klaviyo_script]" id="inject_klaviyo_script_on" value="on" <?php echo (isset($options['inject_klaviyo_script']) && esc_attr($options['inject_klaviyo_script']) == 'on') ? "checked=checked" : ""; ?>><label for="inject_klaviyo_script_on">On</label>
+		<input type="radio" name="user_sync_for_klaviyo_settings[inject_klaviyo_script]" id="inject_klaviyo_script_off" value="off" <?php echo (!isset($options['inject_klaviyo_script']) || esc_attr($options['inject_klaviyo_script']) == 'off') ? "checked=checked" : ""; ?>><label for="inject_klaviyo_script_off">Off</label>
 		<p><i class="swk-help-description">Enable this to add the Klaviyo javascript to your website to enable signup forms and web tracking - <a href="https://developers.klaviyo.com/en/docs/javascript_api" target="_blank">more <span class="dashicons dashicons-external"></span></a></i></p>
 <?php
 	}
@@ -249,18 +250,18 @@ class User_Sync_For_Klaviyo_Admin
 		}
 		// validate Klaviyo public key length
 		if (isset($inputs['klaviyo_public_key']) && strlen($inputs['klaviyo_public_key']) != 6) {
-			if($inputs['klaviyo_public_key'] == ''){
+			if ($inputs['klaviyo_public_key'] == '') {
 				add_settings_error(USER_SYNC_FOR_KLAVIYO_SETTINGS, "invalid", "You need to enter your Klaviyo Public key", 'error');
-			}else{
+			} else {
 				add_settings_error(USER_SYNC_FOR_KLAVIYO_SETTINGS, "invalid", "Your Klaviyo Public Key should be 6 characters long", 'error');
 			}
 			$errors = true;
 		}
 
 		if (isset($inputs['klaviyo_private_key']) && strlen($inputs['klaviyo_private_key']) < 12) {
-			if($inputs['klaviyo_private_key'] == ''){
+			if ($inputs['klaviyo_private_key'] == '') {
 				add_settings_error(USER_SYNC_FOR_KLAVIYO_SETTINGS, "invalid", "You need to enter your Klaviyo Private key", 'error');
-			}else{
+			} else {
 				add_settings_error(USER_SYNC_FOR_KLAVIYO_SETTINGS, "invalid", "Your Klaviyo Private Key should be longer", 'error');
 			}
 			$errors = true;
@@ -288,7 +289,7 @@ class User_Sync_For_Klaviyo_Admin
 	}
 
 	function get_user_event_properties($user_data)
-	{	
+	{
 		$properties = array(
 			'updated_wordpress_user_role' => $user_data->roles[0] ?? "No role set",
 			'updated_first_name' => $user_data->first_name,
@@ -299,21 +300,21 @@ class User_Sync_For_Klaviyo_Admin
 
 	function create_klaviyo_profile($user_id, $historical = false)
 	{
-		try{
+		try {
 			$this->create_klaviyo_event($user_id, "WordPress - Created User", $historical);
-		}catch(Exception $e){
-			error_log("User Sync For Klaviyo : The request to Create profile in Klaviyo failed Userd ID".$user_id);
-			error_log( print_r( $e->getMessage(), true ) );
+		} catch (Exception $e) {
+			error_log("User Sync For Klaviyo : The request to Create profile in Klaviyo failed Userd ID" . (int) $user_id);
+			error_log(print_r(esc_html($e->getMessage()), true));
 		}
 	}
 
 	function update_klaviyo_profile($user_id)
 	{
-		try{
+		try {
 			$this->create_klaviyo_event($user_id, "WordPress - Updated User");
-		}catch(Exception $e){
-			error_log("User Sync For Klaviyo : The request to Update Klaviyo failed Userd ID".$user_id);
-			error_log( print_r( $e->getMessage(), true ) );
+		} catch (Exception $e) {
+			error_log("User Sync For Klaviyo : The request to Update Klaviyo failed Userd ID" . (int) $user_id);
+			error_log(print_r(esc_html($e->getMessage()), true));
 		}
 	}
 
@@ -336,7 +337,7 @@ class User_Sync_For_Klaviyo_Admin
 			)
 		);
 		// if the $historical flag is true, that means this was a bulk job to sync old profiles, so we can added a timestamp so it looks accurate in Klaviyo
-		if($historical){
+		if ($historical) {
 			$created_datetime = DateTime::createFromFormat('Y-m-d H:i:s', $user_properties['wordpress_user_registered']);
 			$formated_created_datetime = $created_datetime->format('c');
 			$data['data']['attributes']['time'] = $formated_created_datetime;
@@ -344,10 +345,10 @@ class User_Sync_For_Klaviyo_Admin
 			unset($data['data']['attributes']['profile']['wordpress_user_last_updated']);
 		}
 		// avoiding errors in case some wordpress users have no email set
-		if(!is_email($user_properties['email'])){
+		if (!is_email($user_properties['email'])) {
 			error_log("User Sync For Klaviyo : Skipped {$user_id} due to missing or invalid email address");
 			return;
-		}else{
+		} else {
 			$this->send_post_request($klaviyo_url, $data);
 		}
 	}
@@ -378,18 +379,18 @@ class User_Sync_For_Klaviyo_Admin
 		// // Send the POST request
 		$response = wp_remote_post($api_url, $args);
 		// Check for errors
-		if (is_wp_error($response) ) {
+		if (is_wp_error($response)) {
 			// Handle error case
 			error_log("User Sync For Klaviyo : The request to Klaviyo failed - body below");
-			error_log( print_r( $data, true ) );
-			throw new Exception($response->error_message.":".$response->error_message);
+			error_log(print_r(esc_html($data), true));
+			throw new Exception($response->error_message . ":" . $response->error_message);
 		} else {
-			if(wp_remote_retrieve_response_code($response) != 202){
+			if (wp_remote_retrieve_response_code($response) != 202) {
 				error_log("User Sync For Klaviyo : The request to Klaviyo failed - body below");
-				error_log( print_r( $data, true ) );
+				error_log(print_r(esc_html($data)), true);
 				$message = json_decode($response['body']);
 
-				throw new Exception("Error code: ".wp_remote_retrieve_response_code($response)." Message:".$message->errors[0]->title);
+				throw new Exception("Error code: " . wp_remote_retrieve_response_code($response) . " Message:" . $message->errors[0]->title);
 			}
 			// Return the response
 			return $response['body'];
@@ -398,30 +399,32 @@ class User_Sync_For_Klaviyo_Admin
 
 	function ajax_sync_all_users()
 	{
+		if (!wp_verify_nonce($_POST['nonce'], 'ajax-nonce')) {
+			echo json_encode(array('status' => 'error', 'sync_status' => 'error', 'error_message' => esc_html("Missing Nonce token!")));
+			wp_die();
+		}
 		$args = array(
-			'fields' => $_POST['fields'],
+			'fields' => sanitize_text_field($_POST['fields']),
 			'count_total' => true,
-			'paged' => $_POST['paged'],
-			'number' => $_POST['number']
+			'paged' => sanitize_text_field($_POST['paged']),
+			'number' => sanitize_text_field($_POST['number'])
 		);
-		$paged = $_POST['paged'];
+		$paged = sanitize_text_field($_POST['paged']);
 		$users = get_users($args);
-		foreach($users as $user_id){
-			try{
-				$this->create_klaviyo_profile($user_id,true);
-			}
-			catch(Exception $e)
-			{
-				echo json_encode(array('status'=>'error','sync_status'=>'error','error_message'=> $e->getMessage()));
+		foreach ($users as $user_id) {
+			try {
+				$this->create_klaviyo_profile($user_id, true);
+			} catch (Exception $e) {
+				echo json_encode(array('status' => 'error', 'sync_status' => 'error', 'error_message' => esc_html($e->getMessage())));
 				wp_die();
 			}
 		}
 		$status = 'processing';
-		$paged ++;
-		if (count($users) < $_POST['number']) {
+		$paged++;
+		if (count($users) < sanitize_text_field($_POST['number'])) {
 			$status = 'finished';
 		}
-		echo json_encode(array('status' => 'success', 'users' => $users, 'sync_status' => $status, 'next_paged' => $paged));
+		echo json_encode(array('status' => 'success', 'users' => $users, 'sync_status' => esc_html($status), 'next_paged' => (int) $paged));
 		wp_die();
 	}
 }
