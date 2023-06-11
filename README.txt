@@ -1,8 +1,8 @@
 === User Sync For Klaviyo ===
-Contributors: Oak and Beech
+Contributors: oakandbeechdev
 Tags: user, sync, klaviyo, profiles
 Donate link: https://oakandbeech.com
-Requires at least: 5.00
+Requires at least: 5.0
 Tested up to: 6.2
 Requires PHP: 5.6
 Stable tag: 1.0.0
