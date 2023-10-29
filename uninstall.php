@@ -29,4 +29,4 @@
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
-delete_option(USER_SYNC_FOR_KLAVIYO_SETTINGS);
+delete_option('user_sync_for_klaviyo_settings');
