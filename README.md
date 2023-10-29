@@ -76,11 +76,11 @@ Once you enable the setting to add the Klaviyo Javascript to your website, you w
 No, this plugin will not delete any data from your Klaviyo account at any stage.
 
 ### I want to add extra information to profiles in Klaviyo, how can I do that?
-You can use the `usfk_modify_user_properties` and `usfk_modify_event_properties` filters to add extra fields to profiles and events
+You can use the `usfk_modify_user_properties` and `usfk_modify_event_properties` filters to add extra fields to profiles and events.  
 See https://oakandbeech.com/user-sync-for-klaviyo-developer-information/ for more information
 
 ### I want to trigger create and update profile events manually, how can I do that?
-You can use the action `usfk_manually_call_update_profile` and `usfk_manually_call_create_profile` to push information to Klaviyo whenever you like.
+You can use the action `usfk_manually_call_update_profile` and `usfk_manually_call_create_profile` to push information to Klaviyo whenever you like.  
 See https://oakandbeech.com/user-sync-for-klaviyo-developer-information/
 
 ### Changelog 
