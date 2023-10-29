@@ -16,7 +16,7 @@
  * Plugin Name:       User Sync For Klaviyo
  * Plugin URI:        https://oakandbeech.com/plugins
  * Description:       This plugin allows you to sync your WordPress Users and their data to Klaviyo
- * Version:           1.0.0
+ * Version:           1.1.0
  * Author:            Oak and Beech
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
@@ -34,7 +34,7 @@ if (!defined('WPINC')) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define('USER_SYNC_FOR_KLAVIYO_VERSION', '1.0.0');
+define('USER_SYNC_FOR_KLAVIYO_VERSION', '1.1.0');
 define('USER_SYNC_FOR_KLAVIYO_SETTINGS', 'user_sync_for_klaviyo_settings');
 
 /**

@@ -82,6 +82,7 @@
     <div class="swk-settings-right">
         <div class="swk-container">
             <h3>Feedback &amp; Support</h3>
+            <p>You are using version <code> <?php echo USER_SYNC_FOR_KLAVIYO_VERSION;?></code></p>
             <p>We are always looking to improve our plugins, so if you encounter any issues or want to give us feedback on what you would like next, please contact us!</p>
              Email us at <a href="mailto:feedback@oakandbeech.com?subject=User%20Sync%20For%20Klaviyo%20Plugin%20Feedback">feedback@oakandbeech.com</a></p>
         </div>
