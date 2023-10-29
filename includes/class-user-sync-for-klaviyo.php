@@ -158,13 +158,14 @@ class User_Sync_For_Klaviyo {
 
 		$this->loader->add_action('admin_menu', $plugin_admin, 'register_admin_menu');
 		$this->loader->add_action('admin_init', $plugin_admin, 'settings_init');
-		$this->loader->add_action('plugin_action_links', $plugin_admin, 'plugin_action_links');
+		$this->loader->add_filter('plugin_action_links_'.$this->plugin_name.'/user-sync-for-klaviyo.php', $plugin_admin, 'plugin_action_links');
 
 		if($this->check_if_plugin_settings_are_valid() && $this->check_if_user_sync_enabled()){
 			$this->loader->add_action('profile_update',$plugin_admin,'update_klaviyo_profile');
 			$this->loader->add_action('user_register',$plugin_admin,'create_klaviyo_profile');
 			$this->loader->add_action('wp_ajax_sync_all_users',$plugin_admin,'ajax_sync_all_users');
 		}
+		
 	}
 	
 	private function check_if_plugin_settings_are_valid() {
