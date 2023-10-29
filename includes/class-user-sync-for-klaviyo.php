@@ -164,9 +164,12 @@ class User_Sync_For_Klaviyo {
 			$this->loader->add_action('profile_update',$plugin_admin,'update_klaviyo_profile');
 			$this->loader->add_action('user_register',$plugin_admin,'create_klaviyo_profile');
 			$this->loader->add_action('wp_ajax_sync_all_users',$plugin_admin,'ajax_sync_all_users');
+			// custom publicly callable actions, accepts the user id as an arguement
+			$this->loader->add_action('usfk_manually_call_create_profile', $plugin_admin, 'create_klaviyo_profile');
+			$this->loader->add_action('usfk_manually_call_update_profile', $plugin_admin, 'update_klaviyo_profile');
 		}
-		
 	}
+
 	
 	private function check_if_plugin_settings_are_valid() {
 		$options = get_option(USER_SYNC_FOR_KLAVIYO_SETTINGS );
