@@ -285,7 +285,7 @@ class User_Sync_For_Klaviyo_Admin
 			'wordpress_user_registered' => $user_data->user_registered,
 			'wordpress_user_last_updated' => date("Y-m-d H:i:s")
 		);
-		return $properties;
+		return apply_filters('usfk_modify_user_properties', $properties, $user_data);
 	}
 
 	function get_user_event_properties($user_data)
@@ -295,7 +295,7 @@ class User_Sync_For_Klaviyo_Admin
 			'updated_first_name' => $user_data->first_name,
 			'updated_last_name' => $user_data->last_name,
 		);
-		return $properties;
+		return apply_filters('usfk_modify_event_properties', $properties, $user_data);
 	}
 
 	function create_klaviyo_profile($user_id, $historical = false)

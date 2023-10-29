@@ -22,6 +22,8 @@ A \"**WordPress - Created User**\" and \"**WordPress - Updated User**\" event is
 
 By default this plugin will only synchronize users created or updated after the plugin was enabled. There is also a feature to allow you to manually sync all of your WordPress users as a once off activity.
 
+Additional fields can be synchonrised to Klaviyo using the plugin hooks and filters.
+
 ### Add Klaviyo Onsite Javascript
 This plugin includes a setting to automatically add the Klaviyo Javascript to your website. This is an optional setting, as you may have already added the Klaviyo Javascript via their official integration.
 
@@ -73,5 +75,15 @@ Once you enable the setting to add the Klaviyo Javascript to your website, you w
 ### Will this plugin delete my users in Klaviyo if I remove it? 
 No, this plugin will not delete any data from your Klaviyo account at any stage.
 
+### I want to add extra information to profiles in Klaviyo, how can I do that?
+You can use the `usfk_modify_user_properties` and `usfk_modify_event_properties` filters to add extra fields to profiles and events
+See https://oakandbeech.com/user-sync-for-klaviyo-developer-information/ for more information
+
+### I want to trigger create and update profile events manually, how can I do that?
+You can use the action `usfk_manually_call_update_profile` and `usfk_manually_call_create_profile` to push information to Klaviyo whenever you like.
+See https://oakandbeech.com/user-sync-for-klaviyo-developer-information/
+
 ### Changelog 
+*1.1.0* 29/10/2023 - Updated plugin to support adding additional properties to events and profiles with filters. Added an action to manually call create and update profile functions.
+
 *1.0.0* 15/04/2023 - Initial release of the plugin

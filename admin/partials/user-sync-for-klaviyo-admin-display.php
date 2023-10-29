@@ -53,7 +53,7 @@
                 <p>By default, this plugin will only sync users who have been created/updated after the plugin was enabled. You can sync all of your existing users by clicking the button below</p>
                 <p><strong>Note: This can take a bit of time, especially if you have a large number of users.</strong></p>
                 <?php $settings = get_option(USER_SYNC_FOR_KLAVIYO_SETTINGS);
-                if($settings['klaviyo_private_key'] != "" && $settings['activate_user_sync'] == 'on'):?>
+                if(isset($settings['klaviyo_private_key']) && $settings['klaviyo_private_key'] != "" && $settings['activate_user_sync'] == 'on'):?>
                 <?php $total_users = count_users()['total_users']; ?>
                 <div id="swk-start-sync" class="button">Start Sync (<?php echo (int) $total_users; ?> Users)</div>
                 <div id="swk-stop-sync" class="button red warning" style="display:none;">Stop Sync</div>
@@ -82,6 +82,7 @@
     <div class="swk-settings-right">
         <div class="swk-container">
             <h3>Feedback &amp; Support</h3>
+            <p>You are using version <code> <?php echo USER_SYNC_FOR_KLAVIYO_VERSION;?></code></p>
             <p>We are always looking to improve our plugins, so if you encounter any issues or want to give us feedback on what you would like next, please contact us!</p>
              Email us at <a href="mailto:feedback@oakandbeech.com?subject=User%20Sync%20For%20Klaviyo%20Plugin%20Feedback">feedback@oakandbeech.com</a></p>
         </div>
