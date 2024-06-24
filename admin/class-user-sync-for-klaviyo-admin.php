@@ -279,12 +279,16 @@ class User_Sync_For_Klaviyo_Admin
 			'email' => $user_data->user_email,
 			'first_name' => $user_data->first_name,
 			'last_name' => $user_data->last_name,
-			'wordpress_user_id' => $user_data->ID,
-			'wordpress_user_login' => $user_data->user_login,
-			'wordpress_user_role' => $user_data->roles[0] ?? "No role set",
-			'wordpress_user_registered' => $user_data->user_registered,
-			'wordpress_user_last_updated' => date("Y-m-d H:i:s")
+			'properties' => array(
+				'wordpress_user_id' => $user_data->ID,
+				'wordpress_user_login' => $user_data->user_login,
+				'wordpress_user_role' => $user_data->roles[0] ?? "No role set",
+				'wordpress_user_registered' => $user_data->user_registered,
+				'wordpress_user_last_updated' => date("Y-m-d H:i:s")
+			)
 		);
+
+
 		return apply_filters('usfk_modify_user_properties', $properties, $user_data);
 	}
 
@@ -318,19 +322,28 @@ class User_Sync_For_Klaviyo_Admin
 		}
 	}
 
-	function create_klaviyo_event($user_id, $event_name = "WordPress - Updated User", $historical = false)
+	function generate_klaviyo_event_payload($user_id, $event_name = "WordPress - Updated User", $historical = false)
 	{
 		$user_data = get_userdata($user_id);
 		$user_properties = $this->get_user_properties($user_data);
 		$user_event_properties = $this->get_user_event_properties($user_data);
-		$klaviyo_url = 'https://a.klaviyo.com/api/events/';
 		$data = array(
 			'data' => array(
 				'type' => 'event',
 				'attributes' => array(
-					'profile' => $user_properties,
+					'profile' => array(
+						'data' => array(
+							'type' => 'profile',
+							'attributes' => $user_properties
+						)
+					),
 					'metric' => array(
-						'name' => $event_name
+						'data' => array(
+							'type' => 'metric',
+							'attributes' => array(
+								'name' => $event_name
+							)
+						)
 					),
 					'properties' => $user_event_properties
 				)
@@ -344,12 +357,22 @@ class User_Sync_For_Klaviyo_Admin
 			// we also unset the "last updated" time because that's not actually correct here
 			unset($data['data']['attributes']['profile']['wordpress_user_last_updated']);
 		}
+		return $data;
+	}
+
+	function create_klaviyo_event($user_id, $event_name = "WordPress - Updated User", $historical = false)
+	{
+		$event_payload = $this->generate_klaviyo_event_payload($user_id, $event_name, $historical);
+
+		$klaviyo_url = 'https://a.klaviyo.com/api/events/';
+
 		// avoiding errors in case some wordpress users have no email set
-		if (!is_email($user_properties['email'])) {
+		if (!is_email($event_payload['data']['attributes']['profile']['data']['attributes']['email'])) {
 			error_log("User Sync For Klaviyo : Skipped {$user_id} due to missing or invalid email address");
+			error_log(json_encode($event_payload));
 			return;
 		} else {
-			$this->send_post_request($klaviyo_url, $data);
+			$this->send_post_request($klaviyo_url, $event_payload);
 		}
 	}
 
@@ -361,7 +384,7 @@ class User_Sync_For_Klaviyo_Admin
 			'Authorization' => 'Klaviyo-API-Key ' . $private_key,
 			'accept' => 'application/json',
 			'content-type' => 'application/json',
-			'revision' => '2023-02-22'
+			'revision' => '2024-06-15'
 		);
 		return $headers;
 	}
@@ -397,6 +420,26 @@ class User_Sync_For_Klaviyo_Admin
 		}
 	}
 
+	function send_bulk_event_request($bulk_data)
+	{
+		$url = "https://a.klaviyo.com/api/event-bulk-create-jobs/";
+		$bulk_event_payload = array(
+			'data' => array(
+				'type' => 'event-bulk-create-job',
+				'attributes' => array(
+					'events-bulk-create' => array(
+						"data" => $bulk_data
+					)
+				)
+			)
+		);
+
+		error_log(json_encode($bulk_event_payload));
+		$this->send_post_request($url, $bulk_event_payload);
+	}
+
+
+
 	function ajax_sync_all_users()
 	{
 		if (!wp_verify_nonce($_POST['nonce'], 'ajax-nonce')) {
@@ -411,14 +454,17 @@ class User_Sync_For_Klaviyo_Admin
 		);
 		$paged = sanitize_text_field($_POST['paged']);
 		$users = get_users($args);
+		$bulk_event_payload = [];
 		foreach ($users as $user_id) {
 			try {
-				$this->create_klaviyo_profile($user_id, true);
+				// $this->create_klaviyo_profile($user_id, true);
+				array_push($bulk_event_payload, $this->generate_klaviyo_event_payload($user_id, "Wordpress - Bulk Created User", true));
 			} catch (Exception $e) {
 				echo json_encode(array('status' => 'error', 'sync_status' => 'error', 'error_message' => esc_html($e->getMessage())));
 				wp_die();
 			}
 		}
+		$this->send_bulk_event_request($bulk_event_payload);
 		$status = 'processing';
 		$paged++;
 		if (count($users) < sanitize_text_field($_POST['number'])) {
