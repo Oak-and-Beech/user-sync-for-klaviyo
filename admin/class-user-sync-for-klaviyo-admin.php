@@ -273,204 +273,239 @@ class User_Sync_For_Klaviyo_Admin
 		return $sanitised_inputs;
 	}
 
-	function get_user_properties($user_data)
-	{
-		$properties = array(
-			'email' => $user_data->user_email,
-			'first_name' => $user_data->first_name,
-			'last_name' => $user_data->last_name,
-			'properties' => array(
-				'wordpress_user_id' => $user_data->ID,
-				'wordpress_user_login' => $user_data->user_login,
-				'wordpress_user_role' => $user_data->roles[0] ?? "No role set",
-				'wordpress_user_registered' => $user_data->user_registered,
-				'wordpress_user_last_updated' => date("Y-m-d H:i:s")
-			)
-		);
+	public function get_user_properties($user_data) {
+        $properties = [
+            'email' => $user_data->user_email,
+            'first_name' => $user_data->first_name,
+            'last_name' => $user_data->last_name,
+            'properties' => [
+                'wordpress_user_id' => $user_data->ID,
+                'wordpress_user_login' => $user_data->user_login,
+                'wordpress_user_role' => $user_data->roles[0] ?? "No role set",
+                'wordpress_user_registered' => $user_data->user_registered,
+                'wordpress_user_last_updated' => date("Y-m-d H:i:s")
+            ]
+        ];
 
+        return apply_filters('usfk_modify_user_properties', $properties, $user_data);
+    }
 
-		return apply_filters('usfk_modify_user_properties', $properties, $user_data);
-	}
+    public function get_user_event_properties($user_data) {
+        $properties = [
+            'updated_wordpress_user_role' => $user_data->roles[0] ?? "No role set",
+            'updated_first_name' => $user_data->first_name,
+            'updated_last_name' => $user_data->last_name,
+        ];
+        return apply_filters('usfk_modify_event_properties', $properties, $user_data);
+    }
 
-	function get_user_event_properties($user_data)
-	{
-		$properties = array(
-			'updated_wordpress_user_role' => $user_data->roles[0] ?? "No role set",
-			'updated_first_name' => $user_data->first_name,
-			'updated_last_name' => $user_data->last_name,
-		);
-		return apply_filters('usfk_modify_event_properties', $properties, $user_data);
-	}
+    public function create_klaviyo_profile($user_id, $historical = false) {
+        try {
+            $this->create_klaviyo_event($user_id, "WordPress - Created User", $historical);
+        } catch (Exception $e) {
+            $this->log_error("Create profile in Klaviyo failed for User ID $user_id", $e);
+        }
+    }
 
-	function create_klaviyo_profile($user_id, $historical = false)
-	{
-		try {
-			$this->create_klaviyo_event($user_id, "WordPress - Created User", $historical);
-		} catch (Exception $e) {
-			error_log("User Sync For Klaviyo : The request to Create profile in Klaviyo failed Userd ID" . (int) $user_id);
-			error_log(print_r(esc_html($e->getMessage()), true));
-		}
-	}
+    public function update_klaviyo_profile($user_id) {
+        try {
+            $this->create_klaviyo_event($user_id, "WordPress - Updated User");
+        } catch (Exception $e) {
+            $this->log_error("Update Klaviyo failed for User ID $user_id", $e);
+        }
+    }
 
-	function update_klaviyo_profile($user_id)
-	{
-		try {
-			$this->create_klaviyo_event($user_id, "WordPress - Updated User");
-		} catch (Exception $e) {
-			error_log("User Sync For Klaviyo : The request to Update Klaviyo failed Userd ID" . (int) $user_id);
-			error_log(print_r(esc_html($e->getMessage()), true));
-		}
-	}
+    public function generate_klaviyo_bulk_event_payload($user_id, $event_name = "WordPress - Created User", $historical = false) {
+        $user_data = get_userdata($user_id);
+        $user_properties = $this->get_user_properties($user_data);
 
-	function generate_klaviyo_event_payload($user_id, $event_name = "WordPress - Updated User", $historical = false)
-	{
-		$user_data = get_userdata($user_id);
-		$user_properties = $this->get_user_properties($user_data);
-		$user_event_properties = $this->get_user_event_properties($user_data);
-		$data = array(
-			'data' => array(
-				'type' => 'event',
-				'attributes' => array(
-					'profile' => array(
-						'data' => array(
-							'type' => 'profile',
-							'attributes' => $user_properties
-						)
-					),
-					'metric' => array(
-						'data' => array(
-							'type' => 'metric',
-							'attributes' => array(
-								'name' => $event_name
-							)
-						)
-					),
-					'properties' => $user_event_properties
-				)
-			)
-		);
-		// if the $historical flag is true, that means this was a bulk job to sync old profiles, so we can added a timestamp so it looks accurate in Klaviyo
-		if ($historical) {
-			$created_datetime = DateTime::createFromFormat('Y-m-d H:i:s', $user_properties['wordpress_user_registered']);
-			$formated_created_datetime = $created_datetime->format('c');
-			$data['data']['attributes']['time'] = $formated_created_datetime;
-			// we also unset the "last updated" time because that's not actually correct here
-			unset($data['data']['attributes']['profile']['wordpress_user_last_updated']);
-		}
-		return $data;
-	}
+        return [
+            'type' => 'event-bulk-create',
+            'attributes' => [
+                'profile' => [
+                    'data' => [
+                        'type' => 'profile',
+                        'attributes' => $user_properties
+                    ],
+                ],
+                'events' => [
+                    'data' => [
+                        $this->generate_klaviyo_single_bulk_event_payload($user_id, $event_name, true)['data']
+                    ]
+                ]
+            ]
+        ];
+    }
 
-	function create_klaviyo_event($user_id, $event_name = "WordPress - Updated User", $historical = false)
-	{
-		$event_payload = $this->generate_klaviyo_event_payload($user_id, $event_name, $historical);
+    public function generate_klaviyo_bulk_events_payload($data) {
+        return [
+            'data' => [
+                'type' => 'event-bulk-create-job',
+                'attributes' => [
+                    'events-bulk-create' => [
+                        'data' => $data
+                    ]
+                ]
+            ]
+        ];
+    }
 
-		$klaviyo_url = 'https://a.klaviyo.com/api/events/';
+    public function generate_klaviyo_event_payload($user_id, $event_name = "WordPress - Updated User", $historical = false) {
+        $user_data = get_userdata($user_id);
+        $user_properties = $this->get_user_properties($user_data);
+        $user_event_properties = $this->get_user_event_properties($user_data);
 
-		// avoiding errors in case some wordpress users have no email set
-		if (!is_email($event_payload['data']['attributes']['profile']['data']['attributes']['email'])) {
-			error_log("User Sync For Klaviyo : Skipped {$user_id} due to missing or invalid email address");
-			error_log(json_encode($event_payload));
-			return;
-		} else {
-			$this->send_post_request($klaviyo_url, $event_payload);
-		}
-	}
+        $data = [
+            'data' => [
+                'type' => 'event',
+                'attributes' => [
+                    'profile' => [
+                        'data' => [
+                            'type' => 'profile',
+                            'attributes' => $user_properties
+                        ]
+                    ],
+                    'metric' => [
+                        'data' => [
+                            'type' => 'metric',
+                            'attributes' => [
+                                'name' => $event_name
+                            ]
+                        ]
+                    ],
+                    'properties' => $user_event_properties
+                ]
+            ]
+        ];
 
-	function build_klaviyo_headers()
-	{
-		// @TODO validate this again
-		$private_key = get_option('user_sync_for_klaviyo_settings')['klaviyo_private_key'];
-		$headers = array(
-			'Authorization' => 'Klaviyo-API-Key ' . $private_key,
-			'accept' => 'application/json',
-			'content-type' => 'application/json',
-			'revision' => '2024-06-15'
-		);
-		return $headers;
-	}
+        if ($historical) {
+            $created_datetime = DateTime::createFromFormat('Y-m-d H:i:s', $user_properties['properties']['wordpress_user_registered']);
+            $formated_created_datetime = $created_datetime->format('c');
+            $data['data']['attributes']['time'] = $formated_created_datetime;
+            unset($data['data']['attributes']['profile']['wordpress_user_last_updated']);
+        }
 
-	function send_post_request($url, $data)
-	{
-		// Set the API endpoint URL
-		$api_url = $url;
-		// Prepare the request arguments
-		$args = array(
-			'headers' => $this->build_klaviyo_headers(),
-			'body' => wp_json_encode($data)
-		);
+        return $data;
+    }
 
-		// // Send the POST request
-		$response = wp_remote_post($api_url, $args);
-		// Check for errors
-		if (is_wp_error($response)) {
-			// Handle error case
-			error_log("User Sync For Klaviyo : The request to Klaviyo failed - body below");
-			error_log(print_r(esc_html($data), true));
-			throw new Exception($response->error_message . ":" . $response->error_message);
-		} else {
-			if (wp_remote_retrieve_response_code($response) != 202) {
-				error_log("User Sync For Klaviyo : The request to Klaviyo failed - body below");
-				error_log(print_r(esc_html($data)), true);
-				$message = json_decode($response['body']);
+    public function generate_klaviyo_single_bulk_event_payload($user_id, $event_name = "WordPress - Created User", $historical = false) {
+        $user_data = get_userdata($user_id);
+        $user_properties = $this->get_user_properties($user_data);
+        $user_event_properties = $this->get_user_event_properties($user_data);
 
-				throw new Exception("Error code: " . wp_remote_retrieve_response_code($response) . " Message:" . $message->errors[0]->title);
-			}
-			// Return the response
-			return $response['body'];
-		}
-	}
+        $data = [
+            'data' => [
+                'type' => 'event',
+                'attributes' => [
+                    'metric' => [
+                        'data' => [
+                            'type' => 'metric',
+                            'attributes' => [
+                                'name' => $event_name
+                            ]
+                        ]
+                    ],
+                    'properties' => $user_event_properties
+                ]
+            ]
+        ];
 
-	function send_bulk_event_request($bulk_data)
-	{
-		$url = "https://a.klaviyo.com/api/event-bulk-create-jobs/";
-		$bulk_event_payload = array(
-			'data' => array(
-				'type' => 'event-bulk-create-job',
-				'attributes' => array(
-					'events-bulk-create' => array(
-						"data" => $bulk_data
-					)
-				)
-			)
-		);
+        if ($historical) {
+            $created_datetime = DateTime::createFromFormat('Y-m-d H:i:s', $user_properties['properties']['wordpress_user_registered']);
+            $formated_created_datetime = $created_datetime->format('c');
+            $data['data']['attributes']['time'] = $formated_created_datetime;
+        }
 
-		error_log(json_encode($bulk_event_payload));
-		$this->send_post_request($url, $bulk_event_payload);
-	}
+        return $data;
+    }
 
+    public function create_klaviyo_event($user_id, $event_name = "WordPress - Updated User", $historical = false) {
+        $event_payload = $this->generate_klaviyo_event_payload($user_id, $event_name, $historical);
+        $klaviyo_url = 'https://a.klaviyo.com/api/events/';
 
+        if (!is_email($event_payload['data']['attributes']['profile']['data']['attributes']['email'])) {
+            error_log("User Sync For Klaviyo: Skipped {$user_id} due to missing or invalid email address");
+            error_log(json_encode($event_payload));
+            return;
+        } else {
+            $this->send_post_request($klaviyo_url, $event_payload);
+        }
+    }
 
-	function ajax_sync_all_users()
-	{
-		if (!wp_verify_nonce($_POST['nonce'], 'ajax-nonce')) {
-			echo json_encode(array('status' => 'error', 'sync_status' => 'error', 'error_message' => esc_html("Missing Nonce token!")));
-			wp_die();
-		}
-		$args = array(
-			'fields' => sanitize_text_field($_POST['fields']),
-			'count_total' => true,
-			'paged' => sanitize_text_field($_POST['paged']),
-			'number' => sanitize_text_field($_POST['number'])
-		);
-		$paged = sanitize_text_field($_POST['paged']);
-		$users = get_users($args);
-		$bulk_event_payload = [];
-		foreach ($users as $user_id) {
-			try {
-				// $this->create_klaviyo_profile($user_id, true);
-				array_push($bulk_event_payload, $this->generate_klaviyo_event_payload($user_id, "Wordpress - Bulk Created User", true));
-			} catch (Exception $e) {
-				echo json_encode(array('status' => 'error', 'sync_status' => 'error', 'error_message' => esc_html($e->getMessage())));
-				wp_die();
-			}
-		}
-		$this->send_bulk_event_request($bulk_event_payload);
-		$status = 'processing';
-		$paged++;
-		if (count($users) < sanitize_text_field($_POST['number'])) {
-			$status = 'finished';
-		}
-		echo json_encode(array('status' => 'success', 'users' => $users, 'sync_status' => esc_html($status), 'next_paged' => (int) $paged));
-		wp_die();
-	}
+    public function build_klaviyo_headers() {
+        $private_key = get_option('user_sync_for_klaviyo_settings')['klaviyo_private_key'];
+        return [
+            'Authorization' => 'Klaviyo-API-Key ' . $private_key,
+            'accept' => 'application/json',
+            'content-type' => 'application/json',
+            'revision' => '2024-06-15'
+        ];
+    }
+
+    public function send_post_request($url, $data) {
+        $api_url = $url;
+        $args = [
+            'headers' => $this->build_klaviyo_headers(),
+            'body' => wp_json_encode($data)
+        ];
+
+        $response = wp_remote_post($api_url, $args);
+
+        if (is_wp_error($response)) {
+            $this->log_error("The request to Klaviyo failed", new Exception($response->error_message . ":" . $response->error_message), $data);
+        } else {
+            if (wp_remote_retrieve_response_code($response) != 202) {
+                $message = json_decode($response['body']);
+                throw new Exception("Error code: " . wp_remote_retrieve_response_code($response) . " Message:" . $message->errors[0]->title);
+            }
+            return $response['body'];
+        }
+    }
+
+    public function ajax_sync_all_users() {
+        if (!wp_verify_nonce($_POST['nonce'], 'ajax-nonce')) {
+            $this->send_ajax_error("Missing Nonce token!");
+        }
+
+        $args = [
+            'fields' => sanitize_text_field($_POST['fields']),
+            'count_total' => true,
+            'paged' => sanitize_text_field($_POST['paged']),
+            'number' => sanitize_text_field($_POST['number'])
+        ];
+        $paged = sanitize_text_field($_POST['paged']);
+        $users = get_users($args);
+        $bulk_event_payload = [];
+
+        foreach ($users as $user_id) {
+            try {
+                $bulk_event_payload[] = $this->generate_klaviyo_bulk_event_payload($user_id, "Wordpress - Created User", true);
+            } catch (Exception $e) {
+                $this->send_ajax_error($e->getMessage());
+            }
+        }
+
+        $bulk_payload = $this->generate_klaviyo_bulk_events_payload($bulk_event_payload);
+
+        $url = "https://a.klaviyo.com/api/event-bulk-create-jobs/";
+        $this->send_post_request($url, $bulk_payload);
+
+        $status = (count($users) < sanitize_text_field($_POST['number'])) ? 'finished' : 'processing';
+        $paged++;
+        echo json_encode(['status' => 'success', 'users' => $users, 'sync_status' => esc_html($status), 'next_paged' => (int) $paged]);
+        wp_die();
+    }
+
+    private function log_error($message, Exception $e, $data = null) {
+        error_log("User Sync For Klaviyo: $message");
+        error_log(print_r(esc_html($e->getMessage()), true));
+        if ($data) {
+            error_log(print_r(esc_html($data), true));
+        }
+    }
+
+    private function send_ajax_error($message) {
+        echo json_encode(['status' => 'error', 'sync_status' => 'error', 'error_message' => esc_html($message)]);
+        wp_die();
+    }
 }

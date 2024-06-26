@@ -52,6 +52,8 @@
                 <h2>Sync All Existing WordPress Users</h2>
                 <p>By default, this plugin will only sync users who have been created/updated after the plugin was enabled. You can sync all of your existing users by clicking the button below</p>
                 <p><strong>Note: This can take a bit of time, especially if you have a large number of users.</strong></p>
+                <p>If you are having memory issues, try adjusting the batch size</p>
+                <p><strong>Batch size:</strong><input type="number" name="swk-batch-size" min=10 max=1000 id="swk-batch-size" value="250"> profiles synced at a time</p>
                 <?php $settings = get_option(USER_SYNC_FOR_KLAVIYO_SETTINGS);
                 if(isset($settings['klaviyo_private_key']) && $settings['klaviyo_private_key'] != "" && $settings['activate_user_sync'] == 'on'):?>
                 <?php $total_users = count_users()['total_users']; ?>
@@ -65,7 +67,7 @@
                 <script>
                     var swk_settings = {
                         'total_users': <?php echo (int) $total_users; ?>,
-                        'number': 15
+                        'number': 250
                     }
                 </script>
                 <?php else:?>

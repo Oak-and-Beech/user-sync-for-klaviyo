@@ -9,7 +9,7 @@
 				action: 'sync_all_users',
 				fields: 'ID',
 				paged: 1,
-				number: swk_settings.number,
+				number: get_batch_size(),
 				total_users: swk_settings.total_users,
 				nonce: swk.nonce,
 			};
@@ -52,6 +52,14 @@
 				content.show();
 			}
 		})
+
+		function get_batch_size()
+		{
+			var batchSizeInput = document.getElementById('swk-batch-size');
+            var batchSize = batchSizeInput ? batchSizeInput.value : 250;
+			swk_settings.number = batchSize;
+			return batchSize;
+		}
 		  
 
 		function ajax_sync_users(data) {
