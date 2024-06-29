@@ -57,6 +57,10 @@
 		{
 			var batchSizeInput = document.getElementById('swk-batch-size');
             var batchSize = batchSizeInput ? batchSizeInput.value : 250;
+			// just stops any funny business
+			if(batchSize < 1){
+				batchSize = 10
+			}
 			swk_settings.number = batchSize;
 			return batchSize;
 		}
