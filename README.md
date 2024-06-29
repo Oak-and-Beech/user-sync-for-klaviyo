@@ -84,6 +84,7 @@ You can use the action `usfk_manually_call_update_profile` and `usfk_manually_ca
 See [developer information](https://oakandbeech.com/user-sync-for-klaviyo-developer-information/)
 
 ### Changelog 
+*1.2.0* 29/06/2024 - Added support for Klaviyo bulk API for faster syncing.
 *1.1.0* 29/10/2023 - Updated plugin to support adding additional properties to events and profiles with filters. Added an action to manually call create and update profile functions.
 
 *1.0.0* 15/04/2023 - Initial release of the plugin

@@ -3,9 +3,9 @@ Contributors: oakandbeechdev
 Tags: user, sync, klaviyo, profiles
 Donate link: https://oakandbeech.com
 Requires at least: 5.0
-Tested up to: 6.3.2
+Tested up to: 6.5.5
 Requires PHP: 5.6
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,8 @@ See [developer information](https://oakandbeech.com/user-sync-for-klaviyo-develo
 2. The information synced by the plugin
 
 == Changelog ==
+= 1.2.0 =
+29/06/2024 - Added support for Klaviyo bulk API for faster syncing.
 = 1.1.0 = 
 29/10/2023 - Updated plugin to support adding additional properties to events and profiles with filters. Added an action to manually call create and update profile functions.
 = 1.0 =
